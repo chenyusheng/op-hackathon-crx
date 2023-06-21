@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 
 import "./index.css";
-import "@assets/styles/tailwind.css";
+// import "@assets/styles/tailwind.css";
 import Popup from "@pages/popup/Popup";
 
 function init() {

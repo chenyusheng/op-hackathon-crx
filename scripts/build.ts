@@ -90,7 +90,7 @@ function buildPage(name: string, entry: string, outdir: string, dev = false) {
 
     return buildHtmlPage(name, entry, outdir, dev);
   }
-  
+
   if (ext === "ts"
    || ext === "tsx"
    || ext === "js"
@@ -136,7 +136,7 @@ async function buildHtmlPage(name: string, entry: string, outdir: string, dev = 
   });
 
   console.timeEnd(prompt);
-  
+
   return out;
 }
 
@@ -185,7 +185,7 @@ function getDistPagePath(name: string, path: string, version: 2 | 3): string {
   const regex = new RegExp(
     `${fileNameWOExt}(-[A-z0-9]*)?\.${distExt}`
   );
-  
+
   const extDir = resolve(OutDir, `v${version}`);
   const pageDir = resolve(extDir, name);
   const pageFiles = fs.readdirSync(pageDir);
@@ -354,14 +354,14 @@ async function DevVersionedExt(versions: (2 | 3)[]) {
 
     let root = [relativeFilePath
       .split(sep)[0]];
-    
+
     if (root[0] === "pages") {
       root.push(relativeFilePath
         .split(sep)[1]);
 
       const isDir = fs.lstatSync(resolve(SrcDir, ...root))
         .isDirectory();
-      
+
       if (!isDir) {
         return;
       }
@@ -423,17 +423,17 @@ function GetArgs(): { browsers: string[], dev: boolean } {
     console.log("Usage: npm run build [<browser>...]");
     process.exit(1);
   }
-  
+
   // TODO: A non-crude way to run : npm run start with no browsers.
   // if (process.argv[2] === "--dev"
   //   && process.argv.length < 4) {
   //   console.log("Usage: npm run start [<browser>...]");
   //   process.exit(0);
   // }
-  
+
   let browsers: string[];
   let dev = false;
-  
+
   if (process.argv[2] === "--dev") {
     browsers = process.argv
       .splice(3);
@@ -442,7 +442,7 @@ function GetArgs(): { browsers: string[], dev: boolean } {
     browsers = process.argv
       .splice(2);
   }
-  
+
   // uniq browsers
   browsers = browsers
     .reduce((acc, browser) => {
@@ -462,7 +462,7 @@ function GetArgs(): { browsers: string[], dev: boolean } {
 function MatchInstalledBrowsers(browsers: string[]) {
   const availableBrowsers = GetInstalledBrowsers();
   const matchedBrowsers: BrowserPath[] = [];
-  
+
   for (const availableBrowser of availableBrowsers) {
     const availableBrowserName = toKebabCase(availableBrowser.name);
     for (const browser of browsers) {
@@ -548,7 +548,7 @@ function getCommand(command: string, args: Record<string, string | null>) {
 function LaunchCommand(browser: BrowserPath, profileDir: string) {
   let command = "web-ext run";
   const args: Record<string, string | null> = {
-    "start-url": "example.com",
+    "start-url": "etherscan.io",
     "profile-create-if-missing": null,
     "browser-console": null,
     "keep-profile-changes": null,

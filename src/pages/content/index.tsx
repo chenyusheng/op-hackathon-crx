@@ -1,5 +1,5 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
+import React from 'react'
+import { createRoot } from 'react-dom/client'
 
 function Content(): JSX.Element {
   return (
@@ -8,25 +8,34 @@ function Content(): JSX.Element {
         <p>
           Edit <code>src/pages/content/index.jsx</code> and save to reload.
         </p>
-        <a
-          className="text-blue-400"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <a>ethereum: 0xf584F8728B874a6a5c7A8d4d387C9aae9172D621 </a>
+        <a className="text-blue-400" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
           Learn React!
         </a>
         <p>Content styled</p>
       </header>
     </div>
-  );
+  )
+}
+
+function findWalletAddresses() {
+  // 使用正则表达式获取当前页面中所有以 0x 开头并且长度为 42 的地址
+  const regex = /(0x[a-fA-F\d]{40})/g;
+  const matches = document.documentElement.innerHTML.match(regex);
+  return [...new Set(matches)]; // 去重后返回数组形式的结果
 }
 
 function init() {
-  const rootContainer = document.body;
-  if (!rootContainer) throw new Error("Can't find Content root element");
-  const root = createRoot(rootContainer);
-  root.render(<Content />);
+  const rootContainer = document.body
+  console.log('rootContainer', rootContainer, document)
+  // inject.js
+  // const links = document.getElementsByTagName('a')
+  // console.log('content links', Array.from(links))
+
+  // const result = Array.from(links).map((link) => link.innerText)
+  const result = findWalletAddresses()
+  console.log('content result', result)
+  chrome.runtime.sendMessage({ type: 'match_eth_address', data: result })
 }
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener('DOMContentLoaded', init)

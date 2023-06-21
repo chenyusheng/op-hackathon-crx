@@ -1,8 +1,8 @@
 {
   "name": "browser-extension",
-  "displayName": "Browser Extension",
+  "displayName": "Moneyflow Extension",
   "version": "2.0.0",
-  "description": "Browser Extension Boilerplate",
+  "description": "Moneyflow Browser Extension",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -15,6 +15,7 @@
   "type": "module",
   "dependencies": {
     "@types/webextension-polyfill": "^0.10.0",
+    "antd": "^5.6.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "webextension-polyfill": "^0.10.0"
