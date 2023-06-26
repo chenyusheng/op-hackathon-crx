@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Descriptions, Skeleton, Tag } from 'antd'
 
+import pkg from '../../../package.json'
 import '@pages/options/Options.css'
 
 export default function Options(): JSX.Element {
@@ -20,7 +21,7 @@ export default function Options(): JSX.Element {
         <Descriptions title="Info">
           <Descriptions.Item label="Version">
             <div>
-              {config.version} {showUpdate && <Tag color="red">New Version</Tag>}
+              V{pkg.version} {showUpdate && <Tag color="red">New Version</Tag>}
             </div>
           </Descriptions.Item>
           <Descriptions.Item label="Download Link">

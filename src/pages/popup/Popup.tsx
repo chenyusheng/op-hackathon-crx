@@ -33,6 +33,7 @@ export default function Popup(): JSX.Element {
   const refreshWebPage = () => {
     setLoading(true)
     // 获取当前选中的标签页
+    // chrome.runtime.sendMessage({ type: 'refresh_address'})
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       chrome.tabs.reload(tabs[0].id ?? 0)
     })
@@ -67,11 +68,11 @@ export default function Popup(): JSX.Element {
       setConfig(
         result.config ?? {
           entity_dashboard_url:
-            'https://www.footprint.network/public/dashboard/Moneyflow-Case-Study%3A-Jump-Trading-(Entity)-fp-abd73e52-8aaa-4fb5-8a79-8469fc1ba0ed?start_date=2023-6-1&entity=',
+            'https://www.footprint.network/public/dashboard/Moneyflow-Case-Study%3A-Jump-Trading-(Entity)-Money-Flow-fp-5e8604f5-8ad3-42ed-ad40-9f6817869079?relative_date=past7days&entity=',
           single_wallet_dashboard_url:
-            'https://www.footprint.network/public/dashboard/Moneyflow-Case-Study%3A-1-Wallet-fp-259fa7ec-1a65-493b-af37-fb66db6e2085?date_filter=thismonth&wallet_address=',
+            'https://www.footprint.network/public/dashboard/Moneyflow-Case-Study%3A-1-Wallet-fp-d4de0e92-51ff-4ff5-bd32-4ca8ea505ca2?date_filter=thismonth&wallet_address=',
           token_holder_dashboard_url:
-            'https://www.footprint.network/public/dashboard/Moneyflow-of-Token-Holder-fp-08b737e4-d4da-445f-a7d7-3eed9844bae4?date_filter=past7days~&token_address=',
+            'https://www.footprint.network/public/dashboard/Moneyflow-of-Token-Holder-Money-Flow-fp-0f01309d-bb47-470c-883b-fb150ad20e49?date_filter=past7days~&token_address=',
         }
       )
       setShowUpdate(result?.showUpdate ?? false)
@@ -113,7 +114,7 @@ export default function Popup(): JSX.Element {
             setViewItem({ ...item, viewType: 'wallet' })
           }}
         >
-          walet profile
+          wallet profile
         </Button>
       )
     }

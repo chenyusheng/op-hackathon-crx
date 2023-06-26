@@ -1,4 +1,5 @@
 console.log('Service Worker 👋')
+import pkg from '../../../package.json'
 // background.js
 let currentTabId = null
 let walletsMap = new Map()
@@ -138,12 +139,13 @@ function queryConfig() {
           objectList.push(object)
         })
         console.log('queryConfig data:', objectList)
-        // TODO: 这里设置版本号
-        const pkg = { version: 1 }
+        // 这里设置版本号
+        console.log('queryConfig pkg:', pkg)
+        const currentPkg = { version: pkg.versionCode }
         if (objectList.length > 0) {
           const config = objectList[0]
-          chrome.storage.local.set({ config: { ...config, currentVersion: pkg.version } })
-          chrome.storage.local.set({ showUpdate: config.version > pkg.version })
+          chrome.storage.local.set({ config: { ...config, currentVersion: currentPkg.version } })
+          chrome.storage.local.set({ showUpdate: config.version > currentPkg.version })
         }
       }
     })
