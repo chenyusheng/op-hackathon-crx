@@ -37,6 +37,9 @@ body {
 .text-gray {
   color: gray;
 }
+.text-red {
+  color: #ff0000;
+}
 .text-gray-light {
   color: #b3b3b3;
 }

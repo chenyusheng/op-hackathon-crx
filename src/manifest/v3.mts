@@ -12,7 +12,8 @@ const manifest: ManifestTypeV3 = {
   icons: {
     '128': 'public/icon-128.png',
   },
-  permissions: ['storage', 'tabs', 'activeTab', 'contextMenus', 'webRequest', 'webRequestBlocking', 'http://*/*', 'https://*/*'],
+  permissions: ['storage', 'tabs', 'activeTab', 'contextMenus', 'webRequest', 'alarms', 'storage', 'webRequestBlocking', 'http://*/', 'https://*/'],
+  host_permissions: ['https://api.footprint.network/*','https://www.footprint.network/*'],
   web_accessible_resources: [
     {
       resources: ['public/*', 'assets/*'],
