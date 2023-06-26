@@ -12,7 +12,7 @@ const manifest: ManifestTypeV3 = {
   icons: {
     '128': 'public/icon-128.png',
   },
-  permissions: ['storage', 'tabs', 'activeTab', 'contextMenus', 'webRequest', 'alarms', 'storage', 'webRequestBlocking', 'http://*/', 'https://*/'],
+  permissions: ['storage', 'tabs', 'activeTab', 'contextMenus', 'webRequest', 'alarms', 'storage'], // 'http://*/*', 'https://*/*'
   host_permissions: ['https://api.footprint.network/*', 'https://www.footprint.network/*'],
   web_accessible_resources: [
     {
@@ -34,6 +34,13 @@ function getManifestV3(pageDirMap: { [x: string]: any }): ManifestTypeV3 {
   }
 
   try {
+    if (pages.indexOf('popup') > -1) {
+      manifest.action = {
+        default_popup: pageDirMap['popup'],
+        default_icon: 'public/icon-34.png',
+      }
+    }
+
     if (pages.indexOf('options') > -1) {
       manifest.options_ui = {
         page: pageDirMap['options'],
@@ -47,12 +54,6 @@ function getManifestV3(pageDirMap: { [x: string]: any }): ManifestTypeV3 {
       }
     }
 
-    if (pages.indexOf('popup') > -1) {
-      manifest.action = {
-        default_popup: pageDirMap['popup'],
-        default_icon: 'public/icon-34.png',
-      }
-    }
     // 暂时不需要 new tab
     // if (pages.indexOf('newtab') > -1) {
     //   manifest.chrome_url_overrides = {
@@ -90,7 +91,7 @@ function getManifestV3(pageDirMap: { [x: string]: any }): ManifestTypeV3 {
     console.error(error)
     throw new Error('Invalid build')
   }
-
+  console.log('v3 mts manifest', manifest)
   return manifest
 }
 

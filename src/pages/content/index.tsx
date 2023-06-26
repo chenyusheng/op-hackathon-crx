@@ -20,9 +20,9 @@ function Content(): JSX.Element {
 
 function findWalletAddresses() {
   // 使用正则表达式获取当前页面中所有以 0x 开头并且长度为 42 的地址
-  const regex = /(0x[a-fA-F\d]{40})/g;
-  const matches = document.documentElement.innerHTML.match(regex);
-  return [...new Set(matches)]; // 去重后返回数组形式的结果
+  const regex = /(0x[a-fA-F\d]{40})/g
+  const matches = document.documentElement.innerHTML.match(regex)
+  return [...new Set(matches)] // 去重后返回数组形式的结果
 }
 
 function init() {

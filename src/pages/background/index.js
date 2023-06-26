@@ -6,14 +6,17 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
   console.log('onActivated activeInfo', activeInfo, walletsMap.has(activeInfo.tabId))
   const { tabId } = activeInfo
   currentTabId = tabId
-  walletsMap.has(tabId) ? updateBadgeText(walletsMap.get(tabId).length.toString()) : updateBadgeText('')
+  walletsMap.has(tabId) ? updateBadgeText(walletsMap.get(tabId).wallet_datas.length.toString()) : updateBadgeText('')
 })
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('background message', message.type)
+  if(message.type === 'query_config'){
+    queryConfig()
+  }
   if (message.type === 'match_eth_address') {
     const datas = message.data
-    walletsMap.set(currentTabId, datas)
+    walletsMap.set(currentTabId, {wallet_datas: datas})
     if (datas.length > 0) {
       updateBadgeText(datas.length.toString())
     } else {
@@ -22,17 +25,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   if (message.type === 'get_all_addresses') {
     console.log('get_all_addresses', currentTabId, walletsMap.has(currentTabId))
-    sendResponse(walletsMap.has(currentTabId) ? walletsMap.get(currentTabId) : [])
-    queryConfig()
+    sendResponse(walletsMap.has(currentTabId) ? walletsMap.get(currentTabId).wallet_datas : [])
   }
   if (message.type === 'get_all_addresses_with_type') {
-    console.log('get_all_addresses_with_type', currentTabId, walletsMap.has(currentTabId))
-    const walletList = message.data || walletsMap.has(currentTabId) ? walletsMap.get(currentTabId) : []
+    console.log('get_all_addresses_with_type', message.data, walletsMap.has(currentTabId))
+    let walletList = message.data??[]
+    let queryTabDatas = false
+    if(!walletList||walletList?.length <= 0){
+      const tabData =  walletsMap.get(currentTabId)
+      if(tabData?.result_datas?.length > 0){
+        console.log('get_all_addresses_with_type cache: ', tabData.result_datas)
+        sendResponse(tabData.result_datas)
+        return
+      }else{
+        queryTabDatas = tabData?.wallet_datas?.length>0
+        walletList = tabData?.wallet_datas ?? []
+      }
+    }
+    console.log('get_all_addresses_with_type walletList: ', walletList)
     if (walletList?.length > 0) {
-      // ${walletList.join(',')}
-      //select * from ethereum_token_transfers where block_timestamp >= date_add('day',-1,current_date) limit 10
-      //0x000fe4cD429c6655528B5a73F317239358441C43,0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c,0x00006621a1800f5f0d498876ee324d92001fc475
-      queryApi(`WITH datas as (select '0x000fe4cD429c6655528B5a73F317239358441C43,0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c,0x00006621a1800f5f0d498876ee324d92001fc475' as addressStr),
+      queryApi(`WITH datas as (select '${walletList.join(',')}' as addressStr),
       addressList as (select lower(address) as address from datas cross join unnest(split(addressStr,','))  as tmp(address)),
       address_with_type as (
           select
@@ -53,6 +65,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       on ear.entity_id = mfei.entity_id`)
         .then(({ data }) => {
           console.log('query sendResponse: \n', data)
+          if(queryTabDatas){
+            walletsMap.set(currentTabId, {wallet_datas: walletList, result_datas: data})
+          }
           sendResponse(data)
         })
         .catch((err) => {
@@ -124,7 +139,7 @@ function queryConfig() {
         })
         console.log('queryConfig data:', objectList)
         // TODO: 这里设置版本号
-        const pkg = { version: 0 }
+        const pkg = { version: 1 }
         if (objectList.length > 0) {
           const config = objectList[0]
           chrome.storage.local.set({ config: { ...config, currentVersion: pkg.version } })

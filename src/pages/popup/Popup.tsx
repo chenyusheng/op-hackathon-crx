@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Input, Space, Skeleton, List, Typography, message, Tooltip, Badge, Tag } from 'antd'
+import { Button, Input, Space, Skeleton, List, Typography, message, Tooltip, Badge, Tag, Card } from 'antd'
 import { LeftOutlined, SyncOutlined } from '@ant-design/icons'
 const { Title } = Typography
 const { Search } = Input
@@ -53,20 +53,16 @@ export default function Popup(): JSX.Element {
       }
     )
   }
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('popup message', message.type, message.data)
-    if (message.type === 'match_eth_address') {
-      onSync()
-      // const datas = message.data
-      // setAddresses(datas)
-      // setLoading(false)
-    }
-  })
 
   useEffect(() => {
-    onSync()
+    if (addresses.length <= 0) {
+      onSync()
+    }
+    chrome.runtime.sendMessage({
+      type: 'query_config',
+    })
     chrome.storage.local.get(['config', 'showUpdate'], function (result) {
-      console.log('config is: ', result)
+      console.log('config is: ', result?.config, result?.showUpdate)
       //entity_dashboard_url ,single_wallet_dashboard_url ,token_holder_dashboard_url
       setConfig(
         result.config ?? {
@@ -80,6 +76,17 @@ export default function Popup(): JSX.Element {
       )
       setShowUpdate(result?.showUpdate ?? false)
     })
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      console.log('popup message', message.type, message.data)
+      if (message.type === 'match_eth_address') {
+        onSync()
+      }
+    })
+    return () => {
+      chrome.runtime.onMessage.removeListener(() => {
+        console.log('remove onMessage Listener')
+      })
+    }
   }, [])
 
   const iframeUrl = (item: IViewItem) => {
@@ -92,6 +99,53 @@ export default function Popup(): JSX.Element {
       default:
         return config.single_wallet_dashboard_url + item.address
     }
+  }
+
+  function getActionItem(item: IViewItem): React.ReactNode[] {
+    const actionItems: React.ReactNode[] = []
+    if (item.address_type === 'wallet_address') {
+      actionItems.push(
+        <Button
+          key="wallet_profile"
+          type="link"
+          style={{ padding: '10px 5px' }}
+          onClick={() => {
+            setViewItem({ ...item, viewType: 'wallet' })
+          }}
+        >
+          walet profile
+        </Button>
+      )
+    }
+    if (item.address_type === 'token_address') {
+      actionItems.push(
+        <Button
+          key="token_address"
+          type="link"
+          style={{ padding: '10px 5px' }}
+          onClick={() => {
+            setViewItem({ ...item, viewType: 'token' })
+          }}
+        >
+          token profile
+        </Button>
+      )
+    }
+    if (item.entity_name) {
+      actionItems.push(
+        <Button
+          key="entity"
+          type="link"
+          style={{ padding: '10px 5px' }}
+          onClick={() => {
+            setViewItem({ ...item, viewType: 'entity' })
+          }}
+        >
+          entity profile
+        </Button>
+      )
+    }
+    return actionItems
   }
 
   return (
@@ -109,6 +163,8 @@ export default function Popup(): JSX.Element {
             </Button>
             <Button
               type="primary"
+              size='small'
+              style={{borderRadius: 5}}
               onClick={(e) => {
                 window.open(iframeUrl(viewItem), '_blank')
               }}
@@ -160,7 +216,7 @@ export default function Popup(): JSX.Element {
             </div>
 
             <Search
-              style={{ width: 500, margin: '10px 0' }}
+              style={{ width: 600, margin: '10px 0' }}
               placeholder="input entity/token address"
               // defaultValue={'0xf584F8728B874a6a5c7A8d4d387C9aae9172D621'}
               allowClear
@@ -175,92 +231,88 @@ export default function Popup(): JSX.Element {
             {/* <Title style={{ width: '100%', textAlign: 'left', margin: 0 }} level={5}>
               Ethereum Wallet Addresses:
             </Title> */}
-            <List
-              style={{ width: 500 }}
-              header={
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                    Detected {addresses?.length} Addresses:{' '}
-                    <Tooltip title="Refresh">
+            {loading ? (
+              <Skeleton style={{ width: 600 }} title={false} loading={loading} active></Skeleton>
+            ) : (
+              <List
+                style={{ width: 600 }}
+                header={
+                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                      Detected {addresses?.length} Addresses:{' '}
+                      <Tooltip title="Refresh">
+                        <Button
+                          id="rotate-button"
+                          style={{ padding: 5 }}
+                          type="link"
+                          onClick={() => {
+                            refreshWebPage()
+                          }}
+                        >
+                          <SyncOutlined />
+                        </Button>
+                      </Tooltip>
+                    </div>
+                    <Tooltip title="If you can't find your address profile, please submit your address directly.">
                       <Button
-                        id="rotate-button"
-                        style={{ padding: 5 }}
-                        type="link"
+                        type="primary"
+                        size="small"
+                        style={{ borderRadius: 5 }}
                         onClick={() => {
-                          refreshWebPage()
+                          // onQueryAddress()
+                          window.open('https://www.footprint.network/submit/contract/add', '_blank')
                         }}
                       >
-                        <SyncOutlined />
+                        Submit Address
                       </Button>
                     </Tooltip>
                   </div>
-                  <Tooltip title="If you can't find your address profile, please submit your address directly.">
-                    <Button
-                      type="primary"
-                      size="small"
-                      style={{ borderRadius: 5 }}
-                      onClick={() => {
-                        // onQueryAddress()
-                        window.open('https://www.footprint.network/submit/contract/add', '_blank')
-                      }}
-                    >
-                      Submit Address
-                    </Button>
-                  </Tooltip>
-                </div>
-              }
-              // footer={<div>Footer</div>}
-              bordered
-              dataSource={addresses}
-              renderItem={(item: IViewItem, index) => (
-                <List.Item
-                  actions={[
-                    item.address_type === 'wallet_address' && (
-                      <Button
-                        key="wallet_profile"
-                        type="link"
-                        style={{ padding: '10px 5px' }}
-                        onClick={() => {
-                          setViewItem({ ...item, viewType: 'wallet' })
-                        }}
-                      >
-                        walet profile
-                      </Button>
-                    ),
-                    item.address_type === 'token_address' && (
-                      <Button
-                        key="token_address"
-                        type="link"
-                        style={{ padding: '10px 5px' }}
-                        onClick={() => {
-                          setViewItem({ ...item, viewType: 'token' })
-                        }}
-                      >
-                        token profile
-                      </Button>
-                    ),
-                    item.entity_name && (
-                      <Button
-                        key="entity_name"
-                        type="link"
-                        style={{ padding: '10px 5px' }}
-                        onClick={() => {
-                          setViewItem({ ...item, viewType: 'entity' })
-                        }}
-                      >
-                        entity profile
-                      </Button>
-                    ),
-                  ]}
-                >
-                  <Skeleton title={false} loading={loading} active>
+                }
+                // footer={<div>Footer</div>}
+                bordered
+                dataSource={addresses}
+                renderItem={(item: IViewItem, index) => (
+                  <List.Item actions={getActionItem(item)}>
                     <Tooltip title={item.address}>
-                      <Typography.Text mark>{index + 1}. </Typography.Text> {item.address.substr(0, 10) + '...' + item.address.substr(item.address.length - 10)}
+                      <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <div>
+                          <Typography.Text mark>{index + 1}. </Typography.Text>{' '}
+                          {item.address.substr(0, 8) + '...' + item.address.substr(item.address.length - 8)}
+                        </div>
+                        <div
+                          style={{
+                            width: '100%',
+                            marginTop: 3,
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 3,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            fontSize: 8,
+                          }}
+                        >
+                          {item.address_type === 'wallet_address' && (
+                            <Tag bordered={false} color="green">
+                              wallet
+                            </Tag>
+                          )}
+                          {item.address_type === 'token_address' && (
+                            <Tag bordered={false} color="cyan">
+                              {item.token_name}
+                            </Tag>
+                          )}
+                          {item.entity_name && (
+                            <Tag bordered={false} color="blue">
+                              {item.entity_name}
+                            </Tag>
+                          )}
+                        </div>
+                      </div>
                     </Tooltip>
-                  </Skeleton>
-                </List.Item>
-              )}
-            />
+                  </List.Item>
+                )}
+              />
+            )}
           </div>
           <Typography.Text style={{ width: '100%', textAlign: 'center', marginTop: 5 }}>
             Power by:{' '}
