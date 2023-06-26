@@ -6,49 +6,48 @@ const { Search } = Input
 import '@pages/index.css'
 import logo from '@assets/img/logo.svg'
 
+interface IViewItem {
+  viewType?: string
+  address: string
+  address_type: string
+  entity_name?: string
+  token_name?: string
+}
 export default function Popup(): JSX.Element {
   const [addresses, setAddresses] = useState([])
-  const [searchText, setSearchText] = useState<string>()
+  const [viewItem, setViewItem] = useState<IViewItem | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [config, setConfig] = useState<any>({})
   const [showUpdate, setShowUpdate] = useState(false)
+  const regex = /(0x[a-fA-F\d]{40})/g
   const onSearch = (value: string) => {
-    console.log('onSearch', value)
-    if (value) {
-      setSearchText(value)
+    console.log('onSearch', value, value.match(regex))
+    if (value.match(regex) != null) {
+      onSync([value])
     } else {
       value && message.error('Please input a valid Ethereum address')
     }
   }
+
+  // 刷新该标签页
   const refreshWebPage = () => {
-    // 获取当前选中的标签页
     setLoading(true)
+    // 获取当前选中的标签页
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      // 刷新该标签页
       chrome.tabs.reload(tabs[0].id ?? 0)
     })
   }
-  const onQueryAddress = () => {
-    chrome.runtime.sendMessage(
-      {
-        type: 'query',
-        sql: 'select * from ...',
-      },
-      (response) => {
-        // 处理响应数据
-        console.log('onQueryAddress response: ', response)
-      }
-    )
-  }
-  const onSync = () => {
+
+  const onSync = (addressList?: string[]) => {
     setLoading(true)
     chrome.runtime.sendMessage(
       {
-        type: 'get_all_addresses',
+        type: 'get_all_addresses_with_type',
+        data: addressList,
       },
       (response) => {
         // 处理响应数据
-        console.log('get_all_addresses response: ', response)
+        console.log('get_all_addresses_with_type response: ', response)
         setAddresses(response)
         setLoading(false)
       }
@@ -57,9 +56,10 @@ export default function Popup(): JSX.Element {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('popup message', message.type, message.data)
     if (message.type === 'match_eth_address') {
-      const datas = message.data
-      setAddresses(datas)
-      setLoading(false)
+      onSync()
+      // const datas = message.data
+      // setAddresses(datas)
+      // setLoading(false)
     }
   })
 
@@ -82,18 +82,38 @@ export default function Popup(): JSX.Element {
     })
   }, [])
 
+  const iframeUrl = (item: IViewItem) => {
+    switch (item.viewType) {
+      case 'entity':
+        return config.entity_dashboard_url + item.entity_name
+      case 'token':
+        return config.token_holder_dashboard_url + item.address
+      case 'wallet':
+      default:
+        return config.single_wallet_dashboard_url + item.address
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 760, minHeight: 560, height: '100%', alignItems: 'center' }}>
-      {searchText ? (
-        <div className="flex flex-col" style={{ width: '100%' }}>
-          <div className="flex flex-row justify-between mb-2">
+      {viewItem ? (
+        <div style={{ width: '100%' }}>
+          <div style={{ width: '100%', display: 'flex', marginBottom: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Button
               type="link"
               onClick={(e) => {
-                setSearchText(undefined)
+                setViewItem(undefined)
               }}
             >
               <LeftOutlined /> Back
+            </Button>
+            <Button
+              type="primary"
+              onClick={(e) => {
+                window.open(iframeUrl(viewItem), '_blank')
+              }}
+            >
+              View full screen
             </Button>
           </div>
           <iframe
@@ -102,7 +122,7 @@ export default function Popup(): JSX.Element {
             }}
             // src="https://huaban.com/"
             // src="https://preview.footprint.network/public/dashboard/Fantom-GameFi-Overview-fp-b546b3ce-67da-43a4-aaac-165cfe6d9389?date__=past180days&chain=Fantom&protocol_type=GameFi"
-            src={`https://www.footprint.network/public/dashboard/Moneyflow-Case-Study%3A-1-Wallet-fp-259fa7ec-1a65-493b-af37-fb66db6e2085?date_filter=thismonth&wallet_address=${searchText}`}
+            src={iframeUrl(viewItem)}
             frameBorder="0"
             width={'100%'}
             height={520}
@@ -126,7 +146,17 @@ export default function Popup(): JSX.Element {
               <Title className="text-red" style={{ margin: 0 }} level={3}>
                 MoneyFlow Extension
               </Title>
-              {showUpdate && <Tag color="red" onClick={()=>{window.open(config?.version_download_url,'_blank')}}>New Version</Tag>}
+              {showUpdate && (
+                <Tag
+                  color="red"
+                  style={{ marginLeft: 5, cursor: 'pointer' }}
+                  onClick={() => {
+                    window.open(config?.version_download_url, '_blank')
+                  }}
+                >
+                  New Version
+                </Tag>
+              )}
             </div>
 
             <Search
@@ -136,7 +166,7 @@ export default function Popup(): JSX.Element {
               allowClear
               onChange={(e) => {
                 if (!e.target.value) {
-                  setSearchText(undefined)
+                  setViewItem(undefined)
                 }
               }}
               onSearch={onSearch}
@@ -182,24 +212,50 @@ export default function Popup(): JSX.Element {
               // footer={<div>Footer</div>}
               bordered
               dataSource={addresses}
-              renderItem={(item: string, index) => (
+              renderItem={(item: IViewItem, index) => (
                 <List.Item
                   actions={[
-                    <Button
-                      key="profile"
-                      type="link"
-                      style={{ padding: '10px 0' }}
-                      onClick={() => {
-                        setSearchText(item)
-                      }}
-                    >
-                      View profile
-                    </Button>,
+                    item.address_type === 'wallet_address' && (
+                      <Button
+                        key="wallet_profile"
+                        type="link"
+                        style={{ padding: '10px 5px' }}
+                        onClick={() => {
+                          setViewItem({ ...item, viewType: 'wallet' })
+                        }}
+                      >
+                        walet profile
+                      </Button>
+                    ),
+                    item.address_type === 'token_address' && (
+                      <Button
+                        key="token_address"
+                        type="link"
+                        style={{ padding: '10px 5px' }}
+                        onClick={() => {
+                          setViewItem({ ...item, viewType: 'token' })
+                        }}
+                      >
+                        token profile
+                      </Button>
+                    ),
+                    item.entity_name && (
+                      <Button
+                        key="entity_name"
+                        type="link"
+                        style={{ padding: '10px 5px' }}
+                        onClick={() => {
+                          setViewItem({ ...item, viewType: 'entity' })
+                        }}
+                      >
+                        entity profile
+                      </Button>
+                    ),
                   ]}
                 >
                   <Skeleton title={false} loading={loading} active>
-                    <Tooltip title={item}>
-                      <Typography.Text mark>{index + 1}. </Typography.Text> {item.substr(0, 10) + '...' + item.substr(item.length - 10)}
+                    <Tooltip title={item.address}>
+                      <Typography.Text mark>{index + 1}. </Typography.Text> {item.address.substr(0, 10) + '...' + item.address.substr(item.address.length - 10)}
                     </Tooltip>
                   </Skeleton>
                 </List.Item>

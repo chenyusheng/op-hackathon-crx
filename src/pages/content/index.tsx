@@ -26,15 +26,14 @@ function findWalletAddresses() {
 }
 
 function init() {
-  const rootContainer = document.body
-  console.log('rootContainer', rootContainer, document)
+  // const rootContainer = document.body
   // inject.js
   // const links = document.getElementsByTagName('a')
   // console.log('content links', Array.from(links))
 
-  // const result = Array.from(links).map((link) => link.innerText)
+  // find all wallet addresses in current page
   const result = findWalletAddresses()
-  console.log('content result', result)
+  // console.log('content result', result)
   chrome.runtime.sendMessage({ type: 'match_eth_address', data: result })
 }
 

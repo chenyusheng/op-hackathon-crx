@@ -1,4 +1,3 @@
-
 console.log('Service Worker 👋')
 // background.js
 let currentTabId = null
@@ -28,11 +27,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   if (message.type === 'get_all_addresses_with_type') {
     console.log('get_all_addresses_with_type', currentTabId, walletsMap.has(currentTabId))
-    const walletList = walletsMap.has(currentTabId) ? walletsMap.get(currentTabId) : []
+    const walletList = message.data || walletsMap.has(currentTabId) ? walletsMap.get(currentTabId) : []
     if (walletList?.length > 0) {
-      const tempList = walletList.map((addr) => `'${addr}'`)
+      // ${walletList.join(',')}
       //select * from ethereum_token_transfers where block_timestamp >= date_add('day',-1,current_date) limit 10
-      queryApi(`select * from ** where address in [${tempList.join(',')}]`)
+      //0x000fe4cD429c6655528B5a73F317239358441C43,0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c,0x00006621a1800f5f0d498876ee324d92001fc475
+      queryApi(`WITH datas as (select '0x000fe4cD429c6655528B5a73F317239358441C43,0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c,0x00006621a1800f5f0d498876ee324d92001fc475' as addressStr),
+      addressList as (select lower(address) as address from datas cross join unnest(split(addressStr,','))  as tmp(address)),
+      address_with_type as (
+          select
+              addressList.*,
+              t."token_name",
+              case
+                  when t."token_name" is not null THEN 'token_address'
+              else 'wallet_address'
+              end as address_type
+          from  addressList
+          left join "token_info" t
+              on t."token_address" = addressList.address
+      )
+      select awt.*,mfei.entity_name as entity_name from address_with_type awt
+      left join "iceberg"."footprint"."entity_address_relations" ear
+      on ear.address = awt.address
+      left join "iceberg"."footprint"."money_flow_entity_info" mfei
+      on ear.entity_id = mfei.entity_id`)
         .then(({ data }) => {
           console.log('query sendResponse: \n', data)
           sendResponse(data)
@@ -77,6 +95,9 @@ function updateBadgeText(text) {
   })
 }
 
+/**
+ * 查询配置
+ */
 function queryConfig() {
   fetch('https://www.footprint.network/api/v1/public/card/89878614-d84d-4333-bc77-00141a71b6ca/query', {
     method: 'GET',
@@ -89,10 +110,10 @@ function queryConfig() {
       return response.json()
     })
     .then(({ data }) => {
-      if(data){
-        const cols = data.cols??[]
-        const rows  = data.rows??[]
-        console.log('queryConfig cols rows:', cols,rows)
+      if (data) {
+        const cols = data.cols ?? []
+        const rows = data.rows ?? []
+        console.log('queryConfig cols rows:', cols, rows)
         const objectList = []
         rows.forEach((row) => {
           const object = {}
@@ -103,17 +124,23 @@ function queryConfig() {
         })
         console.log('queryConfig data:', objectList)
         // TODO: 这里设置版本号
-        const pkg = {version: 0}
-        if(objectList.length > 0){
+        const pkg = { version: 0 }
+        if (objectList.length > 0) {
           const config = objectList[0]
-          chrome.storage.local.set({ config: {...config,currentVersion: pkg.version}  })
+          chrome.storage.local.set({ config: { ...config, currentVersion: pkg.version } })
           chrome.storage.local.set({ showUpdate: config.version > pkg.version })
-      }}
+        }
+      }
     })
     .catch((err) => console.log('queryConfig error: ', err))
 }
-
+/**
+ * 通过 sql api 查询数据
+ * @param {*} querySql
+ * @returns
+ */
 function queryApi(querySql) {
+  console.log('queryApi querySql: \n', querySql)
   return fetch('https://api.footprint.network/api/v1/native', {
     method: 'POST',
     headers: {
