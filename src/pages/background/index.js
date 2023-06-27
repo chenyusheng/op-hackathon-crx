@@ -66,10 +66,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       on ear.entity_id = mfei.entity_id`)
         .then(({ data }) => {
           console.log('query sendResponse: \n', data)
-          if(queryTabDatas){
+          if(queryTabDatas&&data){
             walletsMap.set(currentTabId, {wallet_datas: walletList, result_datas: data})
           }
-          sendResponse(data)
+          sendResponse(data??[])
         })
         .catch((err) => {
           console.log('query error: ', err)
@@ -84,7 +84,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     queryApi(message.sql)
       .then(({ data }) => {
         console.log('query sendResponse: \n', data)
-        sendResponse(data)
+        sendResponse(data??[])
       })
       .catch((err) => {
         console.log('query error: ', err)
@@ -165,5 +165,5 @@ function queryApi(querySql) {
       'API-KEY': '3NI3RIJ77FuxfVvX',
     },
     body: JSON.stringify({ query: querySql }),
-  }).then((response) => response.json())
+  }).then((response) => response?.json())
 }
