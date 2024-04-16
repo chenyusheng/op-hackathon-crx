@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Input, Space, Skeleton, List, Typography, message, Tooltip, Badge, Tag, Card } from 'antd'
-import { LeftOutlined, SyncOutlined, BarChartOutlined } from '@ant-design/icons'
+import { LeftOutlined, SyncOutlined, BarChartOutlined, MessageOutlined } from '@ant-design/icons'
 const { Title } = Typography
 const { Search } = Input
 import '@pages/index.css'
@@ -275,6 +275,16 @@ export default function Popup(): JSX.Element {
                 }}
               >
                 {'Chain Overview >'}
+              </Button>
+              <Button
+                style={{ padding: '10px 5px', marginLeft: 30 }}
+                icon={<MessageOutlined rev={undefined} />}
+                type="link"
+                href="https://t.me/+Lv77x-a16GNlZDk1"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {'Optimism AI Chat >'}
               </Button>
             </div>
             {/* <Title style={{ width: '100%', textAlign: 'left', margin: 0 }} level={5}>
