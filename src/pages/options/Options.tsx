@@ -30,19 +30,19 @@ export default function Options(): JSX.Element {
             </a>
           </Descriptions.Item>
           <Descriptions.Item label="Website">
-            <a href="https://www.footprint.network" rel="noreferrer" target="_blank">
-              www.footprint.network
+            <a href="https://optimism.io/" rel="noreferrer" target="_blank">
+              https://optimism.io/
             </a>
           </Descriptions.Item>
           <Descriptions.Item label="Contact Us">
             <div>
-              <Button style={{padding:'0 10px'}} type='link' href="https://discord.com/invite/3HYaR6USM7" target="_blank" rel="noreferrer">
+              <Button style={{ padding: '0 10px' }} type="link" href="https://discord.gg/optimism" target="_blank" rel="noreferrer">
                 Discord
               </Button>
-              <Button style={{padding:'0 10px'}} type='link' href="https://t.me/joinchat/4-ocuURAr2thODFh" target="_blank" rel="noreferrer">
+              <Button style={{ padding: '0 10px' }} type="link" href="https://t.me/+Lv77x-a16GNlZDk1" target="_blank" rel="noreferrer">
                 Telegram
               </Button>
-              <Button style={{padding:'0 10px'}} type='link' href="https://twitter.com/Footprint_Data" target="_blank" rel="noreferrer">
+              <Button style={{ padding: '0 10px' }} type="link" href="https://twitter.com/optimism" target="_blank" rel="noreferrer">
                 Twitter
               </Button>
             </div>

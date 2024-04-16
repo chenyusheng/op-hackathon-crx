@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Input, Space, Skeleton, List, Typography, message, Tooltip, Badge, Tag, Card } from 'antd'
-import { LeftOutlined, SyncOutlined } from '@ant-design/icons'
+import { LeftOutlined, SyncOutlined, BarChartOutlined } from '@ant-design/icons'
 const { Title } = Typography
 const { Search } = Input
 import '@pages/index.css'
@@ -8,8 +8,8 @@ import logo from '@assets/img/logo.svg'
 
 interface IViewItem {
   viewType?: string
-  address: string
-  address_type: string
+  address?: string
+  address_type?: string
   entity_name?: string
   token_name?: string
 }
@@ -25,7 +25,7 @@ export default function Popup(): JSX.Element {
     if (value.match(regex) != null) {
       onSync([value])
     } else {
-      value && message.error('Please input a valid Ethereum address')
+      value && message.error('Please input a valid Optimism address')
     }
   }
 
@@ -65,16 +65,14 @@ export default function Popup(): JSX.Element {
     chrome.storage.local.get(['config', 'showUpdate'], function (result) {
       console.log('config is: ', result?.config, result?.showUpdate)
       //entity_dashboard_url ,single_wallet_dashboard_url ,token_holder_dashboard_url
-      setConfig(
-        result.config ?? {
-          entity_dashboard_url:
-            'https://www.footprint.network/public/dashboard/Moneyflow-Case-Study%3A-Jump-Trading-(Entity)-Money-Flow-fp-5e8604f5-8ad3-42ed-ad40-9f6817869079?relative_date=past7days&entity=',
-          single_wallet_dashboard_url:
-            'https://www.footprint.network/public/dashboard/Moneyflow-Case-Study%3A-1-Wallet-fp-d4de0e92-51ff-4ff5-bd32-4ca8ea505ca2?date_filter=thismonth&wallet_address=',
-          token_holder_dashboard_url:
-            'https://www.footprint.network/public/dashboard/Moneyflow-of-Token-Holder-Money-Flow-fp-0f01309d-bb47-470c-883b-fb150ad20e49?date_filter=past7days~&token_address=',
-        }
-      )
+      setConfig({
+        entity_dashboard_url:
+          'https://www.footprint.network/public/dashboard/Moneyflow-Case-Study%3A-Jump-Trading-(Entity)-Money-Flow-fp-5e8604f5-8ad3-42ed-ad40-9f6817869079?relative_date=past7days&entity=',
+        single_wallet_dashboard_url:
+          'https://www.footprint.network/public/dashboard/Wallet-Profile-of-Op-fp-fc9cc7f2-3ea9-4174-a45d-353db8863447?wallet_address=',
+        token_holder_dashboard_url:
+          'https://www.footprint.network/public/dashboard/Token-Tracker-for-Optimism-fp-2d6315aa-510b-4607-984a-c9038b0eddaa?token_address=',
+      })
       setShowUpdate(result?.showUpdate ?? false)
     })
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -92,6 +90,8 @@ export default function Popup(): JSX.Element {
 
   const iframeUrl = (item: IViewItem) => {
     switch (item.viewType) {
+      case 'chain':
+        return 'https://www.footprint.network/public/dashboard/Optimism-Dashboard-fp-4590cb5b-002b-4e4e-b2c4-b0583c6b7880?series_date-85136=2010-01-01~&series_date-91824=past90days~&chain=Optimism'
       case 'entity':
         return config.entity_dashboard_url + item.entity_name
       case 'token':
@@ -153,19 +153,28 @@ export default function Popup(): JSX.Element {
     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 760, minHeight: 560, height: '100%', alignItems: 'center' }}>
       {viewItem ? (
         <div style={{ width: '100%' }}>
-          <div style={{ width: '100%', display: 'flex', marginBottom: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              marginBottom: 5,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
             <Button
               type="link"
               onClick={(e) => {
                 setViewItem(undefined)
               }}
             >
-              <LeftOutlined /> Back
+              <LeftOutlined rev={undefined} /> Back
             </Button>
             <Button
               type="primary"
-              size='small'
-              style={{borderRadius: 5}}
+              size="small"
+              style={{ borderRadius: 5 }}
               onClick={(e) => {
                 window.open(iframeUrl(viewItem), '_blank')
               }}
@@ -177,8 +186,6 @@ export default function Popup(): JSX.Element {
             style={{
               overflow: 'hidden',
             }}
-            // src="https://huaban.com/"
-            // src="https://preview.footprint.network/public/dashboard/Fantom-GameFi-Overview-fp-b546b3ce-67da-43a4-aaac-165cfe6d9389?date__=past180days&chain=Fantom&protocol_type=GameFi"
             src={iframeUrl(viewItem)}
             frameBorder="0"
             width={'100%'}
@@ -197,11 +204,29 @@ export default function Popup(): JSX.Element {
             flex: 1,
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', alignContent: 'center', justifyContent: 'center', width: '100%' }}>
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', alignContent: 'center', justifyContent: 'center', width: '100%' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              alignContent: 'center',
+              justifyContent: 'center',
+              width: '100%',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                alignContent: 'center',
+                justifyContent: 'center',
+                width: '100%',
+              }}
+            >
               <img className="flex" src={logo} style={{ width: 32, height: 32, marginRight: 10 }} alt="logo" />
               <Title className="text-red" style={{ margin: 0 }} level={3}>
-                MoneyFlow Extension
+                Optimism Extension
               </Title>
               {showUpdate && (
                 <Tag
@@ -229,8 +254,31 @@ export default function Popup(): JSX.Element {
               onSearch={onSearch}
               enterButton
             />
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                alignContent: 'center',
+                margin: '0 0 10px 0',
+                // justifyContent: 'center',
+                width: 600,
+              }}
+            >
+              <Button
+                key="chain_ovew"
+                type="link"
+                style={{ padding: '10px 5px' }}
+                icon={<BarChartOutlined rev={undefined} />}
+                onClick={() => {
+                  setViewItem({ viewType: 'chain' })
+                }}
+              >
+                {'Chain Overview >'}
+              </Button>
+            </div>
             {/* <Title style={{ width: '100%', textAlign: 'left', margin: 0 }} level={5}>
-              Ethereum Wallet Addresses:
+              Optimism Wallet Addresses:
             </Title> */}
             {loading ? (
               <Skeleton style={{ width: 600 }} title={false} loading={loading} active></Skeleton>
@@ -250,23 +298,10 @@ export default function Popup(): JSX.Element {
                             refreshWebPage()
                           }}
                         >
-                          <SyncOutlined />
+                          <SyncOutlined rev={undefined} />
                         </Button>
                       </Tooltip>
                     </div>
-                    <Tooltip title="If you can't find your address profile, please submit your address directly.">
-                      <Button
-                        type="primary"
-                        size="small"
-                        style={{ borderRadius: 5 }}
-                        onClick={() => {
-                          // onQueryAddress()
-                          window.open('https://www.footprint.network/submit/contract/add', '_blank')
-                        }}
-                      >
-                        Submit Address
-                      </Button>
-                    </Tooltip>
                   </div>
                 }
                 // footer={<div>Footer</div>}
@@ -317,8 +352,8 @@ export default function Popup(): JSX.Element {
           </div>
           <Typography.Text style={{ width: '100%', textAlign: 'center', marginTop: 5 }}>
             Power by:{' '}
-            <Typography.Link href="https://www.footprint.network/" target="_blank">
-              Footprint Analytics{' '}
+            <Typography.Link href="https://optimism.io/" target="_blank">
+              Optimism{' '}
             </Typography.Link>
           </Typography.Text>
         </div>
